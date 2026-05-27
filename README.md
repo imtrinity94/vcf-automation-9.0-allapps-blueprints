@@ -19,7 +19,7 @@ A collection of MVP/POC blueprints for VCF Automations AllApps.
 
 The repository contains the following blueprints. The table below outlines the resources provisioned, the key inputs requested, and the format version used.
 
-| Blueprint Name | Format | Resources Provisioned | Key Inputs | Description |
+| Blueprint Name | formatVersion | Resources Provisioned | Key Inputs | Description |
 |----------------|:------:|-----------------------|------------|-------------|
 | **Basic K8s Cluster** | 1 | Supervisor Namespace, K8s Cluster | Cluster Name | Basic Kubernetes cluster deployment. |
 | **Basic VM Service** | 1 | Supervisor Namespace, VirtualMachine | VM Name | Basic Virtual Machine deployment. |
