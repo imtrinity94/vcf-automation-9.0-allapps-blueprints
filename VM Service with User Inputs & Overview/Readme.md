@@ -17,4 +17,6 @@ This advanced blueprint deploys a Virtual Machine with cloud-init configuration,
 - **Assign public IP** (`expose-ssh`)
 
 ## Blueprint Overview
-![Blueprint Overview](2026-05-26%2017_06_51-Zoom%20Meeting.jpg)
+![Blueprint](2026-05-26%2017_06_51-Zoom%20Meeting.jpg)
+
+![Overview post provisioning (reflects updates)](2026-05-26 16_30_41-Zoom Meeting.jpg)

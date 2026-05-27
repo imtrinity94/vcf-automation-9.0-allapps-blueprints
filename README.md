@@ -10,6 +10,11 @@ A collection of MVP/POC blueprints for VCF Automations AllApps.
 > 
 > These blueprints are not for production use, they're meant to be used as an example, boilerplate, to get started and build on, or for inspiration.
 
+## Prerequisites & Testing
+
+* **Kubernetes Clusters**: To start testing with Kubernetes cluster blueprints, you must have a subscribed content library configured pointing to https://wp-content.broadcom.com/v2/latest/lib.json.
+* **Virtual Machines (VMs)**: For VMs, you can start testing quickly with this tiny Photon OVA: [photon-hw15-5.0-dde71ec57.x86_64.ova](https://packages.vmware.com/photon/5.0/GA/ova/photon-hw15-5.0-dde71ec57.x86_64.ova). You can download and upload it to a custom content library.
+
 ## Blueprints Overview
 
 The repository contains the following blueprints. The table below outlines the resources provisioned, the key inputs requested, and the format version used.
