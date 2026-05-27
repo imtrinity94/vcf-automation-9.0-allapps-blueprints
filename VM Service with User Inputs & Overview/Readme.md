@@ -19,4 +19,4 @@ This advanced blueprint deploys a Virtual Machine with cloud-init configuration,
 ## Blueprint Overview
 ![Blueprint](2026-05-26%2017_06_51-Zoom%20Meeting.jpg)
 
-![Overview post provisioning (reflects updates)](2026-05-26 16_30_41-Zoom Meeting.jpg)
+![2026-05-26 16_30_41-Zoom Meeting.jpg](https://github.com/user-attachments/assets/301225ca-b15e-4885-b219-ea7700f45538)
