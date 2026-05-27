@@ -1,17 +1,14 @@
-# This blueprint is not meant to be an optimal production blueprint, but rather be a MVP/POC blueprint to showcase some of the capabilities in VCF Automation. To make it work there are some things that can not currently (9.0.2) be fetched dynamically that you need to input.
-# most of these values are under variables: , but you also need to edit the vmi's to correspond to your linux images.
 # for Ubuntu, just download the -cloudimg- images from their ftp since they are cloud-init prepped.
 # All Photon images use cloud-init.
 # password for vmware user is VMware123! currently VCF Automation 9.0.2 lacks a bcrypt() function.
-
 formatVersion: 2
 outputs:
   __deploymentOverview:
     value: |-
 
-      ## Ubuntu Server
+      ## VM Service deployment
 
-      Your Ubuntu Server was deployed successfully. Below is a table of useful information
+      Your Virtual Machine was deployed successfully. Below is a table of useful information
 
       #### Virtual Machines
       <table class="table">
@@ -44,68 +41,37 @@ outputs:
       %{if input.expose-ssh == true}
           username@${resource.loadbalancer[*].object.status.loadBalancer.ingress[0].ip[0]}
       %{else}
-          username@{{resource.linux_vm.object.status.network.primaryIP4}}
+          vmware@{{resource.linux_vm.object.status.network.primaryIP4}}
       %{endif}
 
       > **Disclaimer**: IP address may still be populating, if it's blank please come back in a minute.
 variables:
   hostname: ${substring(to_lower(split(env.requestedBy, '.')[0] + '-' + env.shortDeploymentId), 0, 14)}
   user: ${split(env.requestedBy, '@')[0]}
-  domain: sfo.rainpole.io
-  timezone: Europe\Stockholm
-  nameserver01: 172.16.10.4
-  nameserver02: 172.16.10.5
+  domain: fiscnet.ro
+  timezone: Europe\Bucharest
+  nameserver01: 10.253.9.11
+  nameserver02: 10.253.9.12
 inputs:
   namespace-name:
     type: string
-    title: Namespace
-    description: |
-      <h4>Namespace</h4> <p>Provide existing namespace name which is used as deployment target</p>
+    title: Select Namespace
     $data: /data/namespaces?projectId={{project}}
   vm-class:
     type: string
-    title: Virtual Machine Size
-    description: |
-      <h4>Select a Virtual Machine Size</h4>
-      <p>
-      <table class="table table-vertical table-compact">
-        <tr>
-          <th class="left">Size Name</th>
-          <th class="left">Value</th>
-        </tr>
-        <tr>
-          <td class="left"><small>Extra Small<br>(2 vCPUs - 2 GiB MEM)</small></td>
-          <td class="left"><span class="label label-info">best-effort-xsmall</label></td>
-        </tr>
-        <tr>
-          <td class="left"><small>Small<br>(2 vCPUs - 4 GiB MEM)</small></td>
-          <td class="left"><span class="label label-info">best-effort-small</label></td>
-        </tr>
-        <tr>
-          <td class="left"><small>Medium<br>(2 vCPUs - 4 GiB MEM)</small></td>
-          <td class="left"><span class="label label-info">best-effort-medium</label></td>
-        </tr>
-        <tr>
-          <td class="left"><small>Large<br>(2 vCPUs - 2 GiB MEM)</small></td>
-          <td class="left"><span class="label label-info">best-effort-large</label></td>
-        </tr>
-      </table>
-      </p>
+    title: Select Virtual Machine Size
     $data: /data/virtualmachineclasses?namespace={{namespace-name}}
     default: best-effort-xsmall
   vm-image:
     type: string
-    title: Virtual Machine Image
+    title: Select Virtual Machine Image
     description: Select a Virtual Machine Image
     oneOf:
-      - title: Ubuntu-20.25-plucky-server
-        const: vmi-f0c18e325844fc0eb
-      - title: Ubuntu-24.04-noble-server
-        const: vmi-81775fc9d7e0c99bd
-    default: vmi-81775fc9d7e0c99bd
+      - title: Photon-5.0
+        const: vmi-f84f523a54e293552
   expose-ssh:
     type: boolean
-    title: Assign public ip
+    title: Assign public IP
 resources:
   namespace:
     type: CCI.Supervisor.Namespace
@@ -122,7 +88,7 @@ resources:
       wait:
         conditions:
           - type: VirtualMachineCreated
-            status: "True"
+            status: 'True'
       manifest:
         apiVersion: vmoperator.vmware.com/v1alpha3
         kind: VirtualMachine
@@ -135,7 +101,7 @@ resources:
           className: ${input.vm-class}
           imageName: ${input.vm-image}
           powerState: PoweredOn
-          storageClass: vsan-default-storage-policy
+          storageClass: csd-dr-vks-policy
           network:
             hostName: ${variable.hostname}
             domainName: ${variable.domain}
@@ -158,7 +124,7 @@ resources:
         apiVersion: vmoperator.vmware.com/v1alpha3
         kind: VirtualMachineService
         metadata:
-          name: vm-lb-${variable.hostname}
+          name: lb-${variable.hostname}
           namespace: ${input.namespace-name}
         spec:
           selector:
