@@ -1,0 +1,448 @@
+{
+  "info": {
+    "_postman_id": "abc0907e-26f9-4396-81a1-03f7e180e6ba",
+    "name": "VCF Automation 9 - E2E Token Generation Process",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "4001511"
+  },
+  "item": [
+    {
+      "name": "1. Get Provider Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var token = pm.response.headers.get(\"x-vmware-vcloud-access-token\");",
+              "if (token) {",
+              "    pm.collectionVariables.set(\"x-vmware-vcloud-access-token\", token);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "{{userName@orgName}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json;version=40.0"
+          }
+        ],
+        "url": {
+          "raw": "https://{{tm}}/tm/cloudapi/1.0.0/sessions",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "tm",
+            "cloudapi",
+            "1.0.0",
+            "sessions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Tenant Service Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var vcloudJwt = pm.cookies.get(\"vcloud_jwt\");",
+              "if (vcloudJwt) {",
+              "    pm.collectionVariables.set(\"vcloud_jwt\", vcloudJwt);",
+              "}",
+              "",
+              "var jsonData = pm.response.json();",
+              "if (jsonData.client_id) {",
+              "    pm.collectionVariables.set(\"client_id\", jsonData.client_id);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json;version=40.0"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{x-vmware-vcloud-access-token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"client_name\": \"test-service-account-1\",\r\n    \"software_id\": \"4327e96b-5b14-4a63-9de4-6ba260974a64\",\r\n    \"software_version\": \"1.0\",\r\n    \"client_uri\": \"vmware.com\",\r\n    \"scope\": \"urn:vcloud:role:Organization%20Administrator\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://{{tm}}/oauth/tenant/{{orgName}}/register",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "oauth",
+            "tenant",
+            "{{orgName}}",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Configure Service Account Device Authorization",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.collectionVariables.set(\"device_code\", jsonData.device_code);",
+              "pm.collectionVariables.set(\"user_code\", jsonData.user_code);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "type": "text",
+              "key": "client_id",
+              "value": "{{client_id}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{tm}}/oauth/tenant/{{orgName}}/device_authorization",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "oauth",
+            "tenant",
+            "{{orgName}}",
+            "device_authorization"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Grant Service Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "accept",
+            "value": "*/*;version=40.0"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vcloud_jwt}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "vcloud_jwt={{vcloud_jwt}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"userCode\": \"{{user_code}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://{{tm}}/tm/cloudapi/1.0.0/deviceLookup/grant",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "tm",
+            "cloudapi",
+            "1.0.0",
+            "deviceLookup",
+            "grant"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Generate Access Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "if (jsonData.access_token) {",
+              "    pm.collectionVariables.set(\"BearerToken\", jsonData.access_token);",
+              "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+              "}",
+              "",
+              "if (jsonData.refresh_token) {",
+              "    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          },
+          {
+            "key": "Cookie",
+            "value": "vcloud_jwt={{vcloud_jwt}}"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "type": "text",
+              "key": "client_id",
+              "value": "{{client_id}}"
+            },
+            {
+              "type": "text",
+              "key": "grant_type",
+              "value": "urn:ietf:params:oauth:grant-type:device_code"
+            },
+            {
+              "type": "text",
+              "key": "device_code",
+              "value": "{{device_code}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://{{tm}}/tm/oauth/tenant/{{orgName}}/token",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "tm",
+            "oauth",
+            "tenant",
+            "{{orgName}}",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Get Blueprints",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{BearerToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://{{tm}}/blueprint/api/blueprints",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "blueprint",
+            "api",
+            "blueprints"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Get Orgs as tenant",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "application/json;version=41.0.0-alpha"
+          },
+          {
+            "key": "authorization",
+            "value": "Bearer {{BearerToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://{{tm}}/cloudapi/1.0.0/orgs",
+          "protocol": "https",
+          "host": [
+            "{{tm}}"
+          ],
+          "path": [
+            "cloudapi",
+            "1.0.0",
+            "orgs"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "tm",
+      "value": ""
+    },
+    {
+      "key": "orgName",
+      "value": ""
+    },
+    {
+      "key": "userName@orgName",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "x-vmware-vcloud-access-token",
+      "value": ""
+    },
+    {
+      "key": "vcloud_jwt",
+      "value": ""
+    },
+    {
+      "key": "client_id",
+      "value": ""
+    },
+    {
+      "key": "device_code",
+      "value": ""
+    },
+    {
+      "key": "user_code",
+      "value": ""
+    },
+    {
+      "key": "BearerToken",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    }
+  ]
+}
