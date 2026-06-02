@@ -48,10 +48,10 @@ outputs:
 variables:
   hostname: ${substring(to_lower(split(env.requestedBy, '.')[0] + '-' + env.shortDeploymentId), 0, 14)}
   user: ${split(env.requestedBy, '@')[0]}
-  domain: fiscnet.ro
+  domain: domain.local
   timezone: Europe\Bucharest
-  nameserver01: 10.253.9.11
-  nameserver02: 10.253.9.12
+  nameserver01: 10.10.10.11
+  nameserver02: 10.10.9.12
 inputs:
   namespace-name:
     type: string
